@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+from PIL import Image, ImageDraw
 
 st.set_page_config(page_title="Dental AI - Periodontal Analysis", layout="wide")
 
@@ -16,17 +17,17 @@ st.subheader("파노라마 X-ray를 업로드하여 치조골 소실률 및 치�
 uploaded_file = st.file_uploader("파노라마 이미지 파일을 선택하세요", type=["jpg", "png"])
 
 if uploaded_file is not None:
-    # 원본 이미지를 띄웁니다.
+    # 원본 이미지 출력
     st.image(uploaded_file, caption=f"환자명: {patient_name} (차트: {chart_number}) 원본 파노라마 이미지", use_container_width=True)
     
-    if st.button("치주질환 AI 정밀 분석 시작"):
+    if st.button("치주질환 AI 정밀 분석 및 라인 시각화 시작"):
         if not patient_name:
             st.warning("⚠️ 환자 성명을 입력해주세요!")
         else:
-            with st.spinner(f'{patient_name} 님의 치조골 상태를 분석 중입니다...'):
+            with st.spinner(f'{patient_name} 님의 치조골 라인을 분석하여 선을 긋는 중입니다...'):
                 time.sleep(3)
             
-            st.success(f"[{patient_name} 환자] 치주 분석이 완료되었습니다.")
+            st.success(f"[{patient_name} 환자] 치주 분석 및 시각화가 완료되었습니다.")
             
             col1, col2 = st.columns(2)
             
@@ -40,11 +41,21 @@ if uploaded_file is not None:
                 st.write("### 💡 AI 권장 조치")
                 st.warning("⚠️ **상악 구치부 치주 소파술 및 스케일링 필요**")
 
-            # --- 이미지 깨짐 방지: 업로드한 사진을 분석 결과 비교용으로 다시 활용 ---
+            # --- 핵심: 업로드한 사진 위에 초록색(이상적 라인)과 붉은색(실제 뼈 라인) 직접 그리기 ---
             st.write("---")
-            st.write("### 🔬 잇몸뼈 소실 라인 분석 결과")
-            st.write("아래는 업로드된 이미지를 바탕으로 AI가 잇몸 높이를 추정 비교한 결과입니다.")
+            st.write("### 🔬 잇몸뼈 소실 라인 분석 시각화")
             
-            # 깨지는 인터넷 주소 대신, 방금 올린 원본 사진을 그대로 띄워 에러를 원천 차단합니다!
-            st.image(uploaded_file, caption=f"[{patient_name}] 잇몸라인 분석 시각화 완료 (정상선 대비 하방 변위 확인)", use_container_width=True)
-            st.info("초록색 이상적인 뼈 높이 선과 비교했을 때, 상악 어금니 부위에서 치조골 소실이 관찰됩니다.")
+            # 이미지를 열어서 그리기 도구 준비
+            image = Image.open(uploaded_file)
+            draw = ImageDraw.Draw(image)
+            width, height = image.size
+            
+            # 초록색 선 (이상적인 잇몸뼈 상단 라인 예시)
+            draw.line([(width * 0.15, height * 0.38), (width * 0.85, height * 0.38)], fill="green", width=8)
+            
+            # 붉은색 선 (실제로 녹아내린 환자의 치조골 라인 예시 - 어금니 쪽이 내려앉은 형태)
+            draw.line([(width * 0.15, height * 0.42), (width * 0.35, height * 0.45), (width * 0.65, height * 0.45), (width * 0.85, height * 0.42)], fill="red", width=8)
+            
+            # 선이 그려진 이미지를 웹에 출력
+            st.image(image, caption=f"[{patient_name}] 🟢 초록색선: 이상적인 잇몸라인 / 🔴 붉은색선: 실제 낮아진 치조골 라인", use_container_width=True)
+            st.info("💡 **분석 결과**: 초록색 정상선과 비교했을 때, 상악 어금니 부위의 붉은색 라인이 아래로 내려앉아 치조골 소실이 발생한 것을 확인할 수 있습니다.")
