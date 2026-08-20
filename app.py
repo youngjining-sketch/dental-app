@@ -9,7 +9,7 @@ st.subheader("환자 데이터를 업로드하여 AI 분석을 시작하세요."
 uploaded_file = st.file_uploader("파노라마 이미지 파일을 선택하세요", type=["jpg", "png"])
 
 if uploaded_file is not None:
-    st.image(uploaded_file, caption="업로드된 파노라마 이미지", use_column_width=True)
+    st.image(uploaded_file, caption="업로드된 파노라마 이미지", use_container_width=True)
     
     if st.button("AI 분석 시작"):
         with st.spinner('AI가 치아 상태를 정밀 분석 중입니다...'):
